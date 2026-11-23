@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flags Carousel</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 12px;
+  }
+  h1 { margin: 0 0 16px; font-size: 1.6rem; }
+  .carousel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .btn {
+    flex: none;
+    width: 48px; height: 48px;
+    border: none; border-radius: 50%;
+    background: #2563eb; color: #fff;
+    font-size: 1.4rem; cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .btn:active { transform: scale(.94); }
+  .viewport { flex: 1; overflow: hidden; border-radius: 12px; }
+  .track {
+    display: flex;
+    transition: transform .45s ease;
+  }
+  .slide {
+    flex: none;
+    width: 100%;
+    padding: 4px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    justify-items: center;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+  .card { width: 100%; max-width: 480px; padding: 20px; }
+  .card img {
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #fafafa;
+  }
+  .card p { margin: 16px 0 0; font-weight: 700; font-size: 1.6rem; }
+  .dots { display: none !important; }
+  .footer { margin-top: 16px; text-align: center; }
+  .dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+  .dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #cbd5e1; border: none; padding: 0; cursor: pointer;
+  }
+  .dot.active { background: #2563eb; }
+  #counter { font-size: .9rem; color: #6b7280; }
+  @media (max-width: 700px) {
+    .card img { height: 180px; }
+    .btn { width: 40px; height: 40px; }
+  }
+</style>
+</head>
+<body>
+  <h1>Flags of the World</h1>
+
+  <div class="carousel">
+    <button class="btn" id="prev" aria-label="Previous">&#10094;</button>
+    <div class="viewport"><div class="track" id="track"></div></div>
+    <button class="btn" id="next" aria-label="Next">&#10095;</button>
+  </div>
+
+  <div class="footer">
+    <div class="dots" id="dots"></div>
+    <div id="counter"></div>
+  </div>
+
+<script>
+  // [name, ISO 3166-1 alpha-2 code]
+  const flags = [
+    ["Argentina","ar"],["Australia","au"],["Austria","at"],["Belgium","be"],
+    ["Brazil","br"],["Canada","ca"],["Chile","cl"],["China","cn"],
+    ["Colombia","co"],["Croatia","hr"],["Cuba","cu"],["Denmark","dk"],
+    ["Egypt","eg"],["Finland","fi"],["France","fr"],["Germany","de"],
+    ["Greece","gr"],["India","in"],["Indonesia","id"],["Ireland","ie"],
+    ["Italy","it"],["Japan","jp"],["Kenya","ke"],["Malaysia","my"],
+    ["Mexico","mx"],["Morocco","ma"],["Netherlands","nl"],["New Zealand","nz"],
+    ["Nigeria","ng"],["Norway","no"],["Pakistan","pk"],["Peru","pe"],
+    ["Philippines","ph"],["Poland","pl"],["Portugal","pt"],["Russia","ru"],
+    ["Saudi Arabia","sa"],["Singapore","sg"],["South Africa","za"],["South Korea","kr"],
+    ["Spain","es"],["Sweden","se"],["Switzerland","ch"],["Thailand","th"],
+    ["Turkey","tr"],["Ukraine","ua"],["United Kingdom","gb"],["United States","us"]
+  ];
+
+  const PER_PAGE = 1; // one flag per page
+  const pages = Math.ceil(flags.length / PER_PAGE);
+  const track = document.getElementById("track");
+  const dotsEl = document.getElementById("dots");
+  const counter = document.getElementById("counter");
+  let current = 0;
+
+  for (let p = 0; p < pages; p++) {
+    const slide = document.createElement("div");
+    slide.className = "slide";
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    flags.slice(p * PER_PAGE, (p + 1) * PER_PAGE).forEach(([name, code]) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML =
+        `<img src="https://flagcdn.com/w320/${code}.png" alt="Flag of ${name}" loading="lazy">` +
+        `<p>${name}</p>`;
+      grid.appendChild(card);
+    });
+    slide.appendChild(grid);
+    track.appendChild(slide);
+
+    const dot = document.createElement("button");
+    dot.className = "dot";
+    dot.setAttribute("aria-label", "Go to page " + (p + 1));
+    dot.onclick = () => goTo(p);
+    dotsEl.appendChild(dot);
+  }
+
+  function goTo(i) {
+    current = (i + pages) % pages; // wraps around
+    track.style.transform = `translateX(-${current * 100}%)`;
+    [...dotsEl.children].forEach((d, k) => d.classList.toggle("active", k === current));
+    counter.textContent = `Flag ${current + 1} of ${pages}`;
+  }
+
+  document.getElementById("prev").onclick = () => goTo(current - 1);
+  document.getElementById("next").onclick = () => goTo(current + 1);
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft") goTo(current - 1);
+    if (e.key === "ArrowRight") goTo(current + 1);
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>
